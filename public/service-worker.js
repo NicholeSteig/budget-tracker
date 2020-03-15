@@ -1,7 +1,9 @@
 const FILES_TO_CACHE = [
     "/",
     "/index.html",
-
+    "/style.css",
+    "/dist/app.bundle.js",
+    "/dist/db.bundle.js",
 ];
 
 const PRECACHE = "precache-v1";

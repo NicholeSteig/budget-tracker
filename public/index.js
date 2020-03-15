@@ -1,5 +1,3 @@
-import { saveRecord } from "./db";
-
 let transactions = [];
 let myChart;
 
@@ -14,123 +12,122 @@ fetch("/api/transaction")
 
 function populateTotal() {
     const total = transactions.reduce((total, t) => {
-        return total + parseInt(t.value);
+        return total + pareseInt(t.value);
     }, 0);
-
-    const totalE1 = document.querySelector("#total");
-    totalE1.textContent = total;
+    const totalEl = document.querySelector("#total");
+    totalEl.textContent = total;
 }
 
 function populateTable() {
     const tbody = document.querySelector("#tbody");
     tbody.innerHTML = "";
-
+  
     transactions.forEach(transaction => {
-        const tr = document.createElement("tr");
-        tr.innerHTML =
+      const tr = document.createElement("tr");
+      tr.innerHTML = `
         <td>${transaction.name}</td>
         <td>${transaction.value}</td>
-        ;
-
-        tbody.appendChild(tr);
+      `;
+  
+      tbody.appendChild(tr);
     });
-}
-
-function populateChart() {
+  }
+  
+  function populateChart() {
     const reversed = transactions.slice().reverse();
     let sum = 0;
-
+  
     const labels = reversed.map(t => {
-        const date = new Date(t.date);
-        return `${date.getMonth() + 1}/${date.getDate()}/${date.getFullYear()}`;
+      const date = new Date(t.date);
+      return `${date.getMonth() + 1}/${date.getDate()}/${date.getFullYear()}`;
     });
-
+  
     const data = reversed.map(t => {
-        sum += parseInt(t.value);
-        return sum;
+      sum += parseInt(t.value);
+      return sum;
     });
-
+  
     if (myChart) {
-        myChart.destroy();
+      myChart.destroy();
     }
-
+  
     const ctx = document.getElementById("my-chart").getContext("2d");
-
+  
     myChart = new Chart(ctx, {
-        type: "line",
-        data: {
-            labels,
-            datasets: [
-                {
-                    label: "Total Over Time",
-                    fill: true,
-                    backgroundColor: "#6666ff",
-                    data
-                }
-            ]
-        }
+      type: "line",
+      data: {
+        labels,
+        datasets: [
+          {
+            label: "Total Over Time",
+            fill: true,
+            backgroundColor: "#6666ff",
+            data
+          }
+        ]
+      }
     });
-}
-
-function sendTransaction(isAdding) {
-    const nameE1 = document.querySelector("#t-name");
-    const amountE1 = document.querySelector("#t-amount");
-    const errorE1 = document.querySelector("#form .error");
-
-    if (nameE1.value === "" || amountE1.value === "") {
-        errorE1.textContent = "Missing Information";
-        return;
+  }
+  
+  function sendTransaction(isAdding) {
+    const nameEl = document.querySelector("#t-name");
+    const amountEl = document.querySelector("#t-amount");
+    const errorEl = document.querySelector("form .error");
+  
+    if (nameEl.value === "" || amountEl.value === "") {
+      errorEl.textContent = "Missing Information";
+      return;
     } else {
-        errorE1.textContent = "";
+      errorEl.textContent = "";
     }
-
+  
     const transaction = {
-        name: nameE1.value,
-        value: amountE1.value,
-        date: new Date().toISOString()
+      name: nameEl.value,
+      value: amountEl.value,
+      date: new Date().toISOString()
     };
-
+  
     if (!isAdding) {
-        transaction.value *= -1;
+      transaction.value *= -1;
     }
-
+  
     transactions.unshift(transaction);
-
+  
     populateChart();
     populateTable();
     populateTotal();
-
+  
     fetch("/api/transaction", {
-        method: "POST",
-        body: JSON.stringify(transaction),
-        headers: {
-            Accept: "application/json, text/plain, */*",
-            "Content-Type": "application/json"
-        }
+      method: "POST",
+      body: JSON.stringify(transaction),
+      headers: {
+        Accept: "application/json, text/plain, */*",
+        "Content-Type": "application/json"
+      }
     })
-    .then(response => response.json())
-    .then(data => {
+      .then(response => response.json())
+      .then(data => {
         if (data.errors) {
-            errorE1.textContent = "Missing Information";
+          errorEl.textContent = "Missing Information";
         } else {
-            nameE1.value = "";
-            amountE1.value = "";
+          nameEl.value = "";
+          amountEl.value = "";
         }
-    })
-    .catch(err => {
+      })
+      .catch(err => {
         saveRecord(transaction);
-
-        nameE1.value = "";
-        amountE1.value = "";
-    });
-}
-
-document.querySelector("#add-btn").addEventListener("click", function (event) {
+  
+        nameEl.value = "";
+        amountEl.value = "";
+      });
+  }
+  
+  document.querySelector("#add-btn").addEventListener("click", function (event) {
     event.preventDefault();
     sendTransaction(true);
-});
-
-document.querySelector("#sub-btn").addEventListener("click", function (event) {
+  });
+  
+  document.querySelector("#sub-btn").addEventListener("click", function (event) {
     event.preventDefault();
     sendTransaction(false);
-});
+  });
